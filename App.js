@@ -16,11 +16,12 @@ export default function App() {
   const [Datas, setDatas]=useState([])
   const [current, setCurrent]=useState({})
   const [value, setValue] = useState("");
+  const [dataSet, setDataSet] = useState(false);
 
   
   const responseSearch = async ()=>{
     try {
-      const response = await axios.get(`https://api.weatherapi.com/v1/search.json?key=7741a9a23ebb40f8837124213231311&q=${value===""?"tunis":value}`)
+      const response = await axios.get(`https://api.weatherapi.com/v1/search.json?key=7741a9a23ebb40f8837124213231311&q=${value}`)
       setDatas(response.data)
       console.log(response.data);
     } catch (error) {
@@ -34,6 +35,7 @@ export default function App() {
       if(response.status == 200){
         setCurrent(response.data)
         setValue("")
+        setDataSet(true)
         setActive(false)
         console.log(response.data);
       }
@@ -47,7 +49,7 @@ console.log(current?.location?.country);
     
   }, [value])
 
-
+console.log(Datas.length);
   return (
     <ImageBackground
       blurRadius={10}
@@ -56,7 +58,7 @@ console.log(current?.location?.country);
     >
       <SafeAreaView>
         <View style={{ marginLeft: 20, marginRight: 20 }}>
-          <View style={{ position:"absolute" }}>
+          <View style={{  }}>
           <View style={{ flexDirection:active?'row':null, alignItems: active?"center":null }}>
           <TextInput
               style={{
@@ -72,7 +74,7 @@ console.log(current?.location?.country);
               value={value}
             />
 
-            <View style={{marginLeft:active?null:320}}>
+            <View style={{marginLeft:active?null:328}}>
             <TouchableOpacity style={{backgroundColor:"#D1D1D1", padding:10, borderRadius:30}} onPress={()=>setActive(!active)}>
               <AntDesign name="search1" size={25} color="black"   />
             </TouchableOpacity>
@@ -82,7 +84,7 @@ console.log(current?.location?.country);
           </View>
           {
             value.length >= 2 && (
-              <View style={{backgroundColor:"#D1D1D1", position:"relative", marginTop:48, width:"80%", height:120, borderTopLeftRadius:20, borderBottomRightRadius:20}}>
+              <View style={{backgroundColor:"#D1D1D1", position:"relative", marginTop:2, width:"80%", height:120, borderTopLeftRadius:20, borderBottomRightRadius:20}}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                {
                 Datas.map((item, index)=>(
@@ -96,18 +98,23 @@ console.log(current?.location?.country);
             )
           }
 
-
-          <View style={{flexDirection:"row", alignItems:"baseline", marginTop:60, }}>
+{
+  dataSet?  (
+    <View>
+      <View style={{flexDirection:"row", alignItems:"baseline", marginTop:60, }}>
             <Text style={{fontSize:30}}>{current?.location?.name},</Text>
             <Text style={{fontSize:15, color:"gray"}}>{current?.location?.country}</Text>
           </View>
           <View>
           <View style={{flexDirection:"row", alignItems:"center", marginTop:20}}>
             <View>
-            <Text style={{fontSize:120, marginRight:15}}>{current?.current?.temp_c}°</Text>
+            <Text style={{fontSize:80, marginRight:15}}>{current?.current?.temp_c}°</Text>
             <Text style={{fontSize:12, marginRight:15}}>{current?.location?.localtime} </Text>
             </View>
-            <Image source={weatherImages[current?.current.condition?.text]} style={{width:200, height:150}} />
+            <View style={{marginLeft:70}}>
+            <Image source={weatherImages[current?.current?.condition?.text]} style={{width:160, height:150}} />
+
+            </View>
           </View>
           <View style={{alignItems:"flex-end"}}>
           <Text style={{fontSize:20, fontWeight:"bold"}}>{current?.current?.condition?.text}</Text>
@@ -125,12 +132,13 @@ console.log(current?.location?.country);
           </View>
           <View style={{flexDirection:"row", alignItems:"center", gap:10}}>
           <Feather name="sun" size={24} color="black" />
-          <Text style={{fontSize:20}}>6:05 AM</Text>
+          <Text style={{fontSize:20}}>{current?.forecast?.forecastday[0]?.astro?.sunrise}</Text>
           </View>
           </View>
          </View>
 
-       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+   <View>
+   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={{flexDirection:'row', alignItems:"center", gap:10, marginBottom:15}}>
     {
       current?.forecast?.forecastday[0]?.hour?.map((item, index)=>{
@@ -138,7 +146,7 @@ console.log(current?.location?.country);
         let options = { hour: 'numeric', minute: 'numeric' };
         let timeString = date.toLocaleTimeString(undefined, options);
         return(
-        <BlurView tint="dark" >
+        <BlurView tint="dark" key={index}>
         <View style={{alignItems:"center", padding:10}}>
            <Text style={{color:"white"}}>{timeString}</Text>
         <Image source={weatherImages[item?.condition?.text]} style={{width:40, height:40}}  />
@@ -155,34 +163,45 @@ console.log(current?.location?.country);
     }
         </View>
        </ScrollView>
+   </View>
 
-         <View>
+        
+    </View>
+  ):<View>
+    <View style={{alignItems:"center", marginTop:50}}>
+    <Text style={{fontSize:50}}>WELCOME TO ZEWEATHER APP</Text>
+    </View>
+  </View>
+}
+        </View>
+        <StatusBar style="dark"  />
+      </SafeAreaView>
+      <View style={{flex:1, marginLeft:20, marginRight:20, marginBottom:50, display:dataSet?"flex":"none"}}>
           <View style={{flexDirection:"row", alignItems:"center", gap:15}}>
           <AntDesign name="calendar" size={24} color="white" />
           <Text style={{fontSize:20, color:"white"}}>Daily forecast</Text>
           </View>
-          <ScrollView >
+          <View>
+          <ScrollView showsVerticalScrollIndicator={false}>
         {
           current?.forecast?.forecastday?.map((item, index)=>{
             return(
               <View key={index} >
               <BlurView  intensity={30} tint="dark" style={{ padding:10, marginTop:15 }} >
                 <View style={{flexDirection:"row", alignItems:"center", justifyContent:"space-between"}}>
-                <Text style={{fontSize:20, color:"white"}}>{item.date}</Text>
-                 <Image source={require('./assets/weatherImgs/Partlycloudy.png')} style={{width:40, height:40}}  />
-                 <Text style={{fontSize:20, color:"white"}}>20/13°</Text>
+                <Text style={{fontSize:20, color:"white"}}>{item?.date}</Text>
+                 <Image source={weatherImages[item?.day?.condition?.text]} style={{width:40, height:40}}  />
+                 <Text style={{fontSize:20, color:"white"}}>{item.day.avgtemp_c}°</Text>
                 </View>
                  </BlurView>
                  <View style={{borderBottomWidth:2, borderColor:"white"}}></View>
               </View>
             )
-          })
+          }) 
         }
           </ScrollView>
+          </View>
          </View>
-        </View>
-        <StatusBar style="dark"  />
-      </SafeAreaView>
     </ImageBackground>
   );
 }
